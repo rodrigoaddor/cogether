@@ -1,0 +1,10 @@
+name: tictactoe
+description: A simple tictactoe game.
+author: Rodrigo Addor <rodrigotladdor@gmail.com>
+publish_to: none
+
+environment:
+  sdk: '>=2.8.0 <3.0.0'
+  
+dev_dependencies:
+  pedantic: ^1.9.2
