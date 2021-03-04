@@ -1,82 +1,41 @@
-import 'dart:io';
-
-import 'package:tictactoe/utils.dart' show MatrixUtils, ListUtils;
+import 'package:tictactoe/utils.dart' show ListUtils;
 
 enum Mark { X, O }
 
-extension on Mark {
+extension MarkValue on Mark {
   String get value => toString().split('.').last;
 }
 
-class Game {
+class TicTacToe {
   Mark turn = Mark.X;
-  Mark winner;
-  List<List<Mark>> marks = List.generate(3, (i) => List(3));
+  List<Mark?> grid = List.filled(9, null);
+  Mark? winner;
 
-  Mark checkVictory() {
-    for (final row in marks) {
-      if (row.same()) return row.first;
+  Mark? checkVictory() {
+    for (var row = 0; row <= 2; row++) {
+      if (grid.same(start: row * 3, end: row * 3 + 2)) return grid[row * 3];
     }
 
-    for (final column in marks.transposed()) {
-      if (column.same()) return column.first;
+    for (var col = 0; col <= 2; col++) {
+      if (grid.same(start: col, step: 3, end: col + 6)) return grid[col];
     }
 
-    for (final diagonal in marks.diagonals()) {
-      if (diagonal.same()) return diagonal.first;
-    }
-
-    return null;
+    if (grid.same(step: 4)) return grid[0];
+    if (grid.same(start: 2, step: 2, end: 6)) return grid[2];
   }
 
-  // ━ ┃ ╋
-  // ─ │ ┼
-  String get display =>
-      marks.map((row) => ' ' + row.map((e) => e?.value ?? ' ').join(' ┃ ') + ' ').join('\n━━━╋━━━╋━━━\n');
-  // String get display => marks.map((row) => ' ' + row.map((e) => e ?? ' ').join(' │ ') + ' ').join('\n───┼───┼───\n');
+  bool get hasWinner => winner != null;
+  bool get isFinished => hasWinner || grid.every((e) => e != null);
 
-  void run() {
-    String error = '';
-    while (winner == null) {
-      print("\x1B[2J\x1B[0;0H"); // Move term (clear)
-      print('Tic Tac Toe');
-      print('');
-      print(display);
-      print('');
+  bool doTurn(int cell) {
+    if (isFinished) throw StateError('Can\'t do a turn when the game has finished.');
 
+    if (grid[cell] == null) {
+      grid[cell] = turn;
+      turn = turn == Mark.X ? Mark.O : Mark.X;
       winner = checkVictory();
-      if (winner != null || marks.every((row) => row.every((e) => e != null))) break;
-
-      print('\nTurn: ${turn.value}');
-      print('');
-      print(error);
-      print('');
-
-      stdout.write('Enter a cell (1-9): ');
-      int cell = int.tryParse(stdin.readLineSync());
-
-      error = '';
-
-      if (cell != null && cell >= 1 && cell <= 9) {
-        final x = ((cell - 1) / 3).floor();
-        final y = (cell - 1) % 3;
-
-        if (marks[x][y] == null) {
-          marks[x][y] = turn;
-
-          turn = turn == Mark.X ? Mark.O : Mark.X;
-        } else {
-          error = 'Cell already filled in!';
-        }
-      } else {
-        error = 'Invalid cell!';
-      }
+      return true;
     }
-
-    if (winner != null) {
-      print('${winner.value} wins!');
-    } else {
-      print('It\'s a draw!');
-    }
+    return false;
   }
 }
